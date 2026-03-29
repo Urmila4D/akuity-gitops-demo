@@ -236,12 +236,4 @@ akuity-gitops-demo/
 └── README.md                   # This file
 ```
 
-### Key Files
-
-**`apps/*/application.yaml`**
-Defines an Argo CD Application resource for each environment. Specifies the source repository, Helm chart path, target cluster, and sync policy. The namespace field is the key differentiator between environments.
-
-**`kargo/pipeline.yaml`**
-Defines the complete Kargo promotion pipeline including the Project, Warehouse (source subscription), and three sequential Stages. Each stage uses `git-push` steps to write promotion state to environment-specific branches, which Argo CD then syncs from.
-
 ---
