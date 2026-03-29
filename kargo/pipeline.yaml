@@ -1,0 +1,110 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Project
+metadata:
+  name: guestbook-promotion
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: guestbook-warehouse
+  namespace: guestbook-promotion
+spec:
+  subscriptions:
+    - git:
+        repoURL: https://github.com/argoproj/argocd-example-apps
+        branch: master
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: dev
+  namespace: guestbook-promotion
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: guestbook-warehouse
+      sources:
+        direct: true
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: https://github.com/Urmila4D/akuity-gitops-demo
+            checkout:
+              - branch: main
+                path: ./repo
+        - uses: git-commit
+          as: commit
+          config:
+            path: ./repo
+            message: "chore: promote to dev"
+        - uses: git-push
+          config:
+            path: ./repo
+            targetBranch: env/dev
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: staging
+  namespace: guestbook-promotion
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: guestbook-warehouse
+      sources:
+        stages:
+          - dev
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: https://github.com/Urmila4D/akuity-gitops-demo
+            checkout:
+              - branch: main
+                path: ./repo
+        - uses: git-commit
+          as: commit
+          config:
+            path: ./repo
+            message: "chore: promote to staging"
+        - uses: git-push
+          config:
+            path: ./repo
+            targetBranch: env/staging
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: prod
+  namespace: guestbook-promotion
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: guestbook-warehouse
+      sources:
+        stages:
+          - staging
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: https://github.com/Urmila4D/akuity-gitops-demo
+            checkout:
+              - branch: main
+                path: ./repo
+        - uses: git-commit
+          as: commit
+          config:
+            path: ./repo
+            message: "chore: promote to prod"
+        - uses: git-push
+          config:
+            path: ./repo
+            targetBranch: env/prod
